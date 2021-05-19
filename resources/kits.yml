@@ -1,0 +1,9 @@
+---
+kit1:
+  name: test,
+  items:
+    diamond_sword:
+      1
+      2
+    
+...
