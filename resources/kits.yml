@@ -1,9 +1,7 @@
 ---
 kit1:
-  name: test,
+  name: test
   items:
-    diamond_sword:
-      1
-      2
+    diamond_sword: '1:2:3'
     
 ...

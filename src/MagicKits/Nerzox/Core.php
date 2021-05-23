@@ -41,6 +41,7 @@ class Core extends PluginBase {
         $this->saveResource('config.yml');
         $this->kitsfile = new Config($this->getDataFolder() . "kits.yml", Config::YAML);
         $this->configfile = new Config($this->getDataFolder() . "config.yml", Config::YAML);
+        var_dump($this->kitsfile->getAll());
         
     }
 

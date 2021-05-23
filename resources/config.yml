@@ -1,4 +1,5 @@
 ---
 # The lang of the plugin
-lang: "en"
+lang: "en",
+ui_title: "Kit page"
 ...
