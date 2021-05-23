@@ -9,7 +9,10 @@ use pocketmine\item\Item;
 
 use jojoe77777\FormAPI\SimpleForm;
 
-use MagicKits\Nerzox\Core;
+use MagicKits\Nerzox\{
+    Core,
+    API   
+};
 
 class KitsCommand extends Command{
 
@@ -26,9 +29,24 @@ class KitsCommand extends Command{
         }
 
         if(!isset($args[0])) return $this->kitsUI($p);
+        $bool = false;
+        $arr = [];
+        if(isset($args[0])) {
+            foreach($this->c->getKitsFile() as $k){
+                if($args[0] == $k['name']){
+                    $bool = true;
+                    $arr = $k;
+                }
+            }
+            if($bool){
+                if($p->hasPermission($arr['permission'])){
+
+                }
+            }
+        }
     }
     public function kitsUI(Player $p){
-        $form = new SimpleForm(function(Player $p, int $data = null){
+        $form = new SimpleForm(function(Player $p, ?int $data = null){
 
             $arr = [];
             foreach($this->c->getKitsFile()->getAll() as $k){
@@ -44,23 +62,46 @@ class KitsCommand extends Command{
                                 return $p->sendMessage($this->c->getLang()['NOT_PERMISSION_KIT']);
                             }
                         }
-                        $itemsarray = $n['items'];
-                        $allitemarray = [];
-                        $bool = false;
-                        foreach($itemsarray as $itemname => $iteminfo){
-                            $itemarray = explode(':', $iteminfo);
-                            $allitemarray[] = $itemarray;
-                            if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
-                                $bool = true;
-                            }
-                        }
-                        if(!$bool){
-                            foreach($allitemarray as $k => $info){
-                                $p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
-                            }
-                            $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
+                        if(API::hasTime($p, $n['name'])){
+                            if(API::getTime($p, time(), $n['name'], $n['cooldown']) <= time()){
+                                $itemsarray = $n['items'];
+                                $allitemarray = [];
+                                foreach($itemsarray as $itemname => $iteminfo){
+                                    $itemarray = explode(':', $iteminfo);
+                                    $allitemarray[] = $itemarray;
+                                    if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
+                                        return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
+                                    }
+                                }
+                                foreach($allitemarray as $k => $info){
+					$p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
+                                        API::setTime($p, time(), $n['name']);
+                                        $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
+                                    }
+                            }else{
+                                $time = $this->calculTime(API::getTime($p, time(), $n['name'], $n['cooldown']));
+                                $p->sendMessage('§c' . str_replace(["{seconds}", "{hours}", "{minutes}", "{days}"], [$time["s"], $time["h"], $time["m"], $time["d"]], $this->c->getLang()['COOLDOWN_NOT_FINISHED']));
+                            }  
                         }else{
-                            return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
+                            $itemsarray = $n['items'];
+                            $allitemarray = [];
+                            $bool = false;
+                            foreach($itemsarray as $itemname => $iteminfo){
+                                $itemarray = explode(':', $iteminfo);
+                                $allitemarray[] = $itemarray;
+                                if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
+                                    $bool = true;
+                                }
+                            }
+                            if(!$bool){
+                                foreach($allitemarray as $k => $info){
+                                    $p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
+                                }
+                                API::setTime($p, time(), $n['name']);
+                                $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
+                            }else{
+                                return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
+                            }
                         }
 
                     break;       
@@ -70,8 +111,34 @@ class KitsCommand extends Command{
 
         $form->setTitle($this->c->getConfigFile()->get('ui_title'));
         foreach($this->c->getKitsFile()->getAll() as $kits => $infoarray){
-            $form->addButton($infoarray['name']);
+            if(isset($infoarray['permission'])){
+                if($p->hasPermission($infoarray['permission'])){
+                    $form->addButton($infoarray['name']);
+                }
+            }else{
+                $form->addButton($infoarray['name']);
+            }
         }
         $form->sendToPlayer($p);
+    }
+
+    public function calculTime(int $time)
+    {
+        $diff = abs($time- time());
+        $retour = array();
+
+        $tmp = $diff;
+        $retour['s'] = $tmp % 60;
+
+        $tmp = floor( ($tmp - $retour['s']) /60 );
+        $retour['m'] = $tmp % 60;
+
+        $tmp = floor( ($tmp - $retour['m'])/60 );
+        $retour['h'] = $tmp % 24;
+
+        $tmp = floor( ($tmp - $retour['h'])  /24 );
+        $retour['d'] = $tmp;
+
+        return $retour;
     }
 }

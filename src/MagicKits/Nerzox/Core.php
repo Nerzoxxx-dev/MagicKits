@@ -7,7 +7,8 @@ use pocketmine\utils\Config;
 
 use MagicKits\Nerzox\{
     lang\Language,
-    Commands\KitsCommand
+    Commands\KitsCommand,
+    API
 };
 
 class Core extends PluginBase {
@@ -19,13 +20,20 @@ class Core extends PluginBase {
     public $cooldownfile;
     public $langarray;
     public $lang;
+    protected $bdd;
 
     public function onEnable() :void {
         $this->initConfig();
+
         self::$i = $this;
 
         $this->getServer()->getCommandMap()->registerAll('KitsCommand',
             [new KitsCommand($this)]);
+
+        @mkdir($this->getDataFolder() . 'Database/');
+        $this->bdd = new \SQLite3($this->getDataFolder() . 'Database/time.db');
+        API::init();
+
         $this->getLogger()->info($this->getLang()['PLUGIN_ENABLED']);
     }
 
