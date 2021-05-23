@@ -32,7 +32,6 @@ class API{
         $arr = $req->fetchArray();
         $db->close();
 
-        var_dump($arr);
         if(empty($arr)){
             return false;
         }else{

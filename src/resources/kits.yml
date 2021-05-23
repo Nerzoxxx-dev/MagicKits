@@ -1,8 +1,0 @@
----
-kit1:
-  name: test
-  cooldown: 60 #In seconds, please.
-  items:
-    diamond_sword: '1:2:3'
-    
-...

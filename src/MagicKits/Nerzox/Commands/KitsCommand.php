@@ -46,7 +46,7 @@ class KitsCommand extends Command{
         }
     }
     public function kitsUI(Player $p){
-        $form = new SimpleForm(function(Player $p, ?int $data = null){
+        $form = new SimpleForm(function(Player $p, int $data = null){
 
             $arr = [];
             foreach($this->c->getKitsFile()->getAll() as $k){
@@ -69,31 +69,24 @@ class KitsCommand extends Command{
                                 foreach($itemsarray as $itemname => $iteminfo){
                                     $itemarray = explode(':', $iteminfo);
                                     $allitemarray[] = $itemarray;
-                                    if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
-                                        return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
-                                    }
                                 }
-                                foreach($allitemarray as $k => $info){
-					$p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
-                                        API::setTime($p, time(), $n['name']);
-                                        $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
+                                if($this->hasSlotsFree($p, count($allitemarray))){
+                                    foreach($allitemarray as $k => $info){
+                                        $p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
                                     }
-                            }else{
-                                $time = $this->calculTime(API::getTime($p, time(), $n['name'], $n['cooldown']));
-                                $p->sendMessage('§c' . str_replace(["{seconds}", "{hours}", "{minutes}", "{days}"], [$time["s"], $time["h"], $time["m"], $time["d"]], $this->c->getLang()['COOLDOWN_NOT_FINISHED']));
-                            }  
+                                    API::setTime($p, time(), $n['name']);
+                                    $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
+                                }else{
+                                    return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
+                                }
                         }else{
                             $itemsarray = $n['items'];
                             $allitemarray = [];
-                            $bool = false;
                             foreach($itemsarray as $itemname => $iteminfo){
                                 $itemarray = explode(':', $iteminfo);
                                 $allitemarray[] = $itemarray;
-                                if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
-                                    $bool = true;
-                                }
                             }
-                            if(!$bool){
+                            if($this->hasSlotsFree($p, count($allitemarray))){
                                 foreach($allitemarray as $k => $info){
                                     $p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
                                 }
@@ -103,8 +96,8 @@ class KitsCommand extends Command{
                                 return $p->sendMessage('§c' . $this->c->getLang()['CANT_GIVE_KIT']);
                             }
                         }
-
-                    break;       
+                        break;       
+                    }
                 }
             }
         });
@@ -140,5 +133,20 @@ class KitsCommand extends Command{
         $retour['d'] = $tmp;
 
         return $retour;
+    }
+
+    public function hasSlotsFree(Player $p, int $requireslots) :bool{
+        $count = 0;
+        foreach($p->getInventory()->getContents(true) as $i){
+            if($i->getId() == 0){
+                $count++;
+            }
+        }
+        if($count >= $requireslots) {
+            return true;
+        }else{
+            return false;
+        }
+        return true;
     }
 }
