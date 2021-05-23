@@ -21,13 +21,12 @@ class Core extends PluginBase {
     public $lang;
 
     public function onEnable() :void {
-        $this->getLogger()->info($this->getLang()['PLUGIN_ENABLED']);
+        $this->initConfig();
         self::$i = $this;
 
         $this->getServer()->getCommandMap()->registerAll('KitsCommand',
             [new KitsCommand($this)]);
-
-        $this->initConfig();
+        $this->getLogger()->info($this->getLang()['PLUGIN_ENABLED']);
     }
 
     public function onDisable() :void{
@@ -41,8 +40,6 @@ class Core extends PluginBase {
         $this->saveResource('config.yml');
         $this->kitsfile = new Config($this->getDataFolder() . "kits.yml", Config::YAML);
         $this->configfile = new Config($this->getDataFolder() . "config.yml", Config::YAML);
-        var_dump($this->kitsfile->getAll());
-        
     }
 
 

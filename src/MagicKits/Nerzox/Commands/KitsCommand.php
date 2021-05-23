@@ -5,6 +5,8 @@ namespace MagicKits\Nerzox\Commands;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
+use pocketmine\item\Item;
+
 use jojoe77777\FormAPI\SimpleForm;
 
 use MagicKits\Nerzox\Core;
@@ -45,15 +47,16 @@ class KitsCommand extends Command{
                         $itemsarray = $n['items'];
                         $allitemarray = [];
                         $bool = false;
-                        foreach($itemsarray as $iteminfo){
-                            $allitemarray[] = explode(':', $iteminfo);
-                            if(!$p->getInventory()->canAddItem(explode(':', $iteminfo))) {
+                        foreach($itemsarray as $itemname => $iteminfo){
+                            $itemarray = explode(':', $iteminfo);
+                            $allitemarray[] = $itemarray;
+                            if(!$p->getInventory()->canAddItem(Item::get($itemarray[0], $itemarray[1], $itemarray[2]))) {
                                 $bool = true;
                             }
                         }
                         if(!$bool){
                             foreach($allitemarray as $k => $info){
-                                $p->getInventory()->addItem($info[0], $info[1], $info[2]);
+                                $p->getInventory()->addItem(Item::get($info[0], $info[1], $info[2]));
                             }
                             $p->sendMessage('§2' . $this->c->getLang()['KIT_GIVED']);
                         }else{
